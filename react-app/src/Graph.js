@@ -7,8 +7,36 @@ function Graph() {
 
     const [verticalLines, setVerticalLines] = useState([]);
 
-    const initialData = Array.from({length: 20}, () => [Math.random() * height, 0, 0])
+    const initialData = Array.from({length: 200}, () => [Math.random() * height, 0, 0])
     const [dataPoints, setDataPoints] = useState(initialData);
+
+    const [mode, setMode] = useState("Split");
+
+
+
+    function getClickedId(event) { 
+        const canvas = canvasRef.current;
+        const rect = canvas.getBoundingClientRect();
+        const x = event.clientX - rect.left;
+        const x_step = canvas.width / (dataPoints.length - 1);
+        const index = Math.floor(x / x_step);
+        const pointId = dataPoints[index][1];
+        console.log(pointId);
+
+        return pointId;
+    }
+
+    function updateColorById(id) { 
+        const updatedPoints = dataPoints.map(point => {
+            const pointId = point[1];
+            if (pointId == id) { 
+                return [point[0], point[1], point[2] + 1];
+            }
+            return point;
+        
+        });
+        setDataPoints(updatedPoints);
+    }
 
     function addVeriticalLine(event) { 
         
@@ -26,6 +54,8 @@ function Graph() {
         });
 
     }
+
+
 
 
     function updatePointIds(verticalLines) { 
@@ -73,6 +103,7 @@ function Graph() {
             const x = index * x_step;
             const price = point[0];
             const id = point[1];
+            const color = point[2];
 
             if (index > 0) { 
 
@@ -84,16 +115,16 @@ function Graph() {
                 const prevId = prevPoint[1]
 
 
-                if (id % 4 == 0) {
+                if (color % 4 == 0) {
                     ctx.strokeStyle = "blue";
                 }
-                else if (id % 4 == 1) {
+                else if (color % 4 == 1) {
                     ctx.strokeStyle = "red";
                 }
-                else if (id % 4 == 2) {
+                else if (color % 4 == 2) {
                     ctx.strokeStyle = "green";
                 }
-                else if (id % 4 == 3) {
+                else if (color % 4 == 3) {
                     ctx.strokeStyle = "yellow";
                 }
                 
@@ -127,27 +158,40 @@ function Graph() {
     }, [verticalLines, dataPoints]);
 
 
-    // add event listener to graph
-    useEffect(() => { 
-        const canvas = canvasRef.current;
-        canvas.addEventListener("click", addVeriticalLine);
-
-        return () => { 
-            canvas.removeEventListener("click", addVeriticalLine);
+    function handleCanvasClick(event) { 
+        if (mode == "Split") { 
+            addVeriticalLine(event);
         }
-    }, []);
-
+        else if (mode == "Edit") { 
+            // function to detect id
+            const id = getClickedId(event);
+            // function to set ids with correct color
+            updateColorById(id);
+        }
+    }
 
     function handleClick() {
         dataPoints.forEach(point => console.log(point));
     }
 
+    function toggleMode() { 
+        if (mode == "Split") { 
+            setMode("Edit");
+        }
+        else { 
+            setMode("Split");
+        }
+
+        
+
+    }
 
 
     return (
         <>
-            <canvas id="graph" ref={canvasRef} width="800" height="400"></canvas>
+            <canvas id="graph" ref={canvasRef} onClick={handleCanvasClick} width="800" height="400"></canvas>
             <button onClick={handleClick}>Log</button>
+            <button onClick={toggleMode}>Toggle Mode</button>
         </>
     )
 }
