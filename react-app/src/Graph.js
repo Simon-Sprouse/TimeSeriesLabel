@@ -9,7 +9,7 @@ function Graph(dataFromCsv) {
     const initialData = Array.from({length: 300}, () => [0, 0, 0])
     const [dataPoints, setDataPoints] = useState(initialData);
 
-    const [numPoints, setNumPoints] = useState(100);
+    const [numPoints, setNumPoints] = useState(200);
     const [scrollOffset, setScrollOffset] = useState(0);
 
     // Load data from prop
@@ -66,6 +66,7 @@ function Graph(dataFromCsv) {
         const index = (x / x_step) + scrollOffset; // floating point 
 
 
+
         setVerticalLines(prevLines => {
             const newLines = [...prevLines, index].sort((a, b) => a - b);
             updatePointIds(newLines);
@@ -76,13 +77,10 @@ function Graph(dataFromCsv) {
 
     // huge performance update needed
     function updatePointIds(verticalLines) { 
-        const canvas = canvasRef.current;
-        const x_step = canvas.width / (numPoints - 1);
-
 
 
         const updatedPoints = dataPoints.map((point, index) => { 
-            const x = x_step * index; // x pos on graph
+
             let newId = 0;
 
             for (let i = 0; i < verticalLines.length; i++) {
@@ -109,33 +107,57 @@ function Graph(dataFromCsv) {
     */
 
 
+    function getMinMaxPrices() { 
+        const prices = dataPoints.slice(scrollOffset, scrollOffset + numPoints).map(point => point[0]);
+        const minPrice = Math.min(...prices);
+        const maxPrice = Math.max(...prices);
+        return { minPrice, maxPrice };
+    }
+
+
     function drawGraph() {
+
         const canvas = canvasRef.current;
         const ctx = canvas.getContext("2d");
-
-        const x_step = canvas.width / (numPoints - 1);
-
         ctx.clearRect(0, 0, canvas.width, canvas.height);
         ctx.lineWidth = 3;
 
+        const x_step = canvas.width / (numPoints - 1);
+
+        const visibleDataPoints = dataPoints.slice(scrollOffset, scrollOffset + numPoints);
+        const prices = visibleDataPoints.map(point => point[0]);
+
+        const minPrice = Math.min(...prices);
+        const maxPrice = Math.max(...prices);
+
+        const margin = 0.1; // 10% margin on both sides
+        const usableHeight = canvas.height * (1 - (2 * margin));
+        const topMargin = canvas.height * margin;
+
+        const priceRange = maxPrice - minPrice;
+        const scaleY = usableHeight / priceRange;
+
+
+
         // draw datapoints graph
-        dataPoints.slice(scrollOffset, scrollOffset + numPoints).forEach((point, index) => { 
+        visibleDataPoints.forEach((point, index) => { 
 
-
-            const x = index * x_step;
-            const price = canvas.height - point[0];
-            const id = point[1];
-            const color = point[2];
 
             if (index > 0) { 
 
+                const price = point[0];
+                const prevPoint = dataPoints[scrollOffset + index - 1];
+                const prevPrice = prevPoint[0];
+
+
+                const x = index * x_step;
+                const y = topMargin + usableHeight - (price - minPrice) * scaleY
                 
                 const prevX = (index - 1) * x_step;
+                const prevY = topMargin + usableHeight - (prevPrice - minPrice) * scaleY;
 
-                const prevPoint = dataPoints[scrollOffset + index - 1];
-                const prevPrice = canvas.height - prevPoint[0];
-                // const prevId = prevPoint[1]
 
+                const color = point[2];
 
                 if (color % 4 == 0) {
                     ctx.strokeStyle = "blue";
@@ -151,8 +173,8 @@ function Graph(dataFromCsv) {
                 }
                 
                 ctx.beginPath();
-                ctx.moveTo(prevX, prevPrice);
-                ctx.lineTo(x, price);
+                ctx.moveTo(prevX, prevY);
+                ctx.lineTo(x, y);
                 ctx.stroke();
             }
             
@@ -227,13 +249,6 @@ function Graph(dataFromCsv) {
     }
 
 
-    function test() {
-        // dataFromCsv.forEach((point, index) => { 
-        //     console.log(point, index);
-        // })
-        console.log(dataFromCsv['dataFromCsv']);
-    }
-
 
 
     function handleScroll(direction) { 
@@ -252,12 +267,19 @@ function Graph(dataFromCsv) {
     }
 
 
+    function test() {
+        console.log(getMinMaxPrices());
+    }
+
+
+
+
     return (
         <>
             <p>{mode == "Split" ? "Segment Mode" : "Label Mode"}</p>
             <canvas id="graph" ref={canvasRef} onClick={handleCanvasClick} width="1600" height="600"></canvas>
             <button onClick={toggleMode}>Toggle Mode</button>
-            {/* <button onClick={test}>Test</button> */}
+            <button onClick={test}>Test</button>
             <button onClick={() => handleScroll("left")}>Left</button>
             <button onClick={() => handleScroll("right")}>Right</button>
             <p>{scrollOffset}</p>
@@ -293,6 +315,32 @@ so the array should look like:
 Price should be generated randomly for now. 
 Id will be unique for each section bounded by vertical lines
 Class will be generated randomly for now 0-k
+
+
+
+
+
+Ok here's what the fuck is happening pt. 2: 
+
+List of things to do: 
+
+- Make the data scale to the window size vertically
+- Performance improvement for the updatePointIds function
+- Zoom feature to change numPoints
+- Create toggle menu
+- Add remove segment feature
+- Add drag scroll feature
+- Zoom with mouse rather than button
+- Output the dataset to csv
+- Clean csv inputs if they arrive in bad form
+- File opener io
+- K class selection
+- User inputs labels
+- Show stats on labels as percentage of data
+- Add dates/labels for axes
+- Add color underneath line
+- Segment darkens when hovering over it
+- Css improvements
 
 
 */
