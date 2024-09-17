@@ -75,7 +75,7 @@ function Graph(dataFromCsv) {
 
     }
 
-    // huge performance update needed
+
     function updatePointIds(verticalLines) { 
 
         let id = 0;
@@ -194,7 +194,7 @@ function Graph(dataFromCsv) {
     useEffect(() => { 
         // console.log("detected a change in dataPoints");
         drawGraph();
-    }, [verticalLines, dataPoints, scrollOffset]);
+    }, [verticalLines, dataPoints, scrollOffset, numPoints]);
 
 
     /*
@@ -260,6 +260,18 @@ function Graph(dataFromCsv) {
         
     }
 
+    function handleZoom(direction) {
+        setNumPoints((prevNumPoints) => { 
+            if (direction == "in" && prevNumPoints > 10) { 
+                return prevNumPoints - 10;
+            }
+            else if (direction == "out" && prevNumPoints < dataPoints.length) { 
+                return prevNumPoints + 10;
+            }
+            return prevNumPoints
+        })
+    }
+
 
     function test() {
         console.log(getMinMaxPrices());
@@ -274,9 +286,13 @@ function Graph(dataFromCsv) {
             <canvas id="graph" ref={canvasRef} onClick={handleCanvasClick} width="1600" height="600"></canvas>
             <button onClick={toggleMode}>Toggle Mode</button>
             <button onClick={test}>Test</button>
+            <p>Scroll</p>
             <button onClick={() => handleScroll("left")}>Left</button>
             <button onClick={() => handleScroll("right")}>Right</button>
             <p>{scrollOffset}</p>
+            <p>Zoom</p>
+            <button onClick={() => handleZoom("in")}>In</button>
+            <button onClick={() => handleZoom("out")}>Out</button>
         </>
     )
 }
@@ -319,8 +335,8 @@ Ok here's what the fuck is happening pt. 2:
 List of things to do: 
 
 - Make the data scale to the window size vertically         DONE
-- Performance improvement for the updatePointIds function
-- Zoom feature to change numPoints
+- Performance improvement for the updatePointIds function   DONE
+- Zoom feature to change numPoints                          DONE
 - Create toggle menu
 - Add remove segment feature
 - Add drag scroll feature
@@ -335,6 +351,7 @@ List of things to do:
 - Add color underneath line
 - Segment darkens when hovering over it
 - Css improvements
+- Show text on graph for labels
 
 
 */
