@@ -78,23 +78,17 @@ function Graph(dataFromCsv) {
     // huge performance update needed
     function updatePointIds(verticalLines) { 
 
+        let id = 0;
 
         const updatedPoints = dataPoints.map((point, index) => { 
 
-            let newId = 0;
-
-            for (let i = 0; i < verticalLines.length; i++) {
-                if (index >= verticalLines[i]) { 
-                    newId = i + 1;
-                }
-                else { 
-                    break;
-                }
+            // if point is further right than vertical line, create new id group
+            while (index >= verticalLines[id]) { 
+                id++;
             }
 
-            return [point[0], newId, point[2]];
+            return [point[0], id, point[2]];
         });
-
 
         setDataPoints(updatedPoints);
 
@@ -324,7 +318,7 @@ Ok here's what the fuck is happening pt. 2:
 
 List of things to do: 
 
-- Make the data scale to the window size vertically
+- Make the data scale to the window size vertically         DONE
 - Performance improvement for the updatePointIds function
 - Zoom feature to change numPoints
 - Create toggle menu
