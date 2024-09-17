@@ -1,5 +1,6 @@
 import './App.css';
 import Graph from './Graph';
+import Data from './Data';
 
 function App() {
   return (
@@ -7,6 +8,7 @@ function App() {
       <header className="App-header">
         <h1>Add Labels</h1>
         <Graph />
+        <Data />
       </header>
     </div>
   );

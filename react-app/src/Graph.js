@@ -3,11 +3,11 @@ import { useState, useEffect, useRef } from 'react'
 function Graph() { 
 
     const canvasRef = useRef(null);
-    const height = 400;
+    const height = 600;
 
     const [verticalLines, setVerticalLines] = useState([]);
 
-    const initialData = Array.from({length: 200}, () => [Math.random() * height, 0, 0])
+    const initialData = Array.from({length: 300}, () => [(Math.random() * 0.8 + 0.1) * height, 0, 0])
     const [dataPoints, setDataPoints] = useState(initialData);
 
     const [mode, setMode] = useState("Split");
@@ -189,7 +189,7 @@ function Graph() {
 
     return (
         <>
-            <canvas id="graph" ref={canvasRef} onClick={handleCanvasClick} width="800" height="400"></canvas>
+            <canvas id="graph" ref={canvasRef} onClick={handleCanvasClick} width="1600" height="600"></canvas>
             <button onClick={handleClick}>Log</button>
             <button onClick={toggleMode}>Toggle Mode</button>
         </>
