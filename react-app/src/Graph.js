@@ -31,7 +31,7 @@ function Graph(dataFromCsv) {
         const rect = canvas.getBoundingClientRect();
         const x = event.clientX - rect.left;
         const x_step = canvas.width / (numPoints - 1);
-        const index = Math.floor(x / x_step);
+        const index = Math.floor(x / x_step) + scrollOffset;
         const pointId = dataPoints[index][1];
 
         return pointId;
@@ -59,32 +59,34 @@ function Graph(dataFromCsv) {
     function addVeriticalLine(event) { 
         
         const canvas = canvasRef.current;
-        const ctx = canvas.getContext("2d");
-        
         const rect = canvas.getBoundingClientRect();
         const x = event.clientX - rect.left;
+        
+        const x_step = canvas.width / (numPoints - 1);
+        const index = (x / x_step) + scrollOffset; // floating point 
 
 
         setVerticalLines(prevLines => {
-            const newLines = [...prevLines, x].sort((a, b) => a - b);
+            const newLines = [...prevLines, index].sort((a, b) => a - b);
             updatePointIds(newLines);
             return newLines;
         });
 
     }
 
+    // huge performance update needed
     function updatePointIds(verticalLines) { 
         const canvas = canvasRef.current;
         const x_step = canvas.width / (numPoints - 1);
 
-        // dataPoints.forEach(point => console.log(point));
+
 
         const updatedPoints = dataPoints.map((point, index) => { 
             const x = x_step * index; // x pos on graph
             let newId = 0;
 
             for (let i = 0; i < verticalLines.length; i++) {
-                if (x > verticalLines[i]) { 
+                if (index >= verticalLines[i]) { 
                     newId = i + 1;
                 }
                 else { 
@@ -95,7 +97,6 @@ function Graph(dataFromCsv) {
             return [point[0], newId, point[2]];
         });
 
-        // updatedPoints.forEach(point => console.log(point));
 
         setDataPoints(updatedPoints);
 
@@ -159,11 +160,13 @@ function Graph(dataFromCsv) {
 
 
         // draw vertical lines
-        verticalLines.forEach(line => {
+        verticalLines.forEach(lineIndex => {
+
+            const lineX = (lineIndex - scrollOffset) * x_step;
             
             ctx.beginPath();
-            ctx.moveTo(line, 0);
-            ctx.lineTo(line, canvas.height);
+            ctx.moveTo(lineX, 0);
+            ctx.lineTo(lineX, canvas.height);
             ctx.strokeStyle = "black";
             ctx.linewidth = 2;
             ctx.stroke();
