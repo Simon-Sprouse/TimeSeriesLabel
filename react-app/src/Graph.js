@@ -2,19 +2,14 @@ import { useState, useEffect, useRef } from 'react'
 
 function Graph(dataFromCsv) { 
 
-    const [mode, setMode] = useState("Split");
-
+    // Variables
     const canvasRef = useRef(null);
-    const height = 600;
-
+    const [mode, setMode] = useState("Split");
     const [verticalLines, setVerticalLines] = useState([]);
-
-
-    const initialData = dataFromCsv.length > 0 
-        ? dataFromCsv['dataFromCsv'] : 
-        Array.from({length: 300}, () => [0, 0, 0])
+    const initialData = Array.from({length: 300}, () => [0, 0, 0])
     const [dataPoints, setDataPoints] = useState(initialData);
 
+    // Load data from prop
     useEffect(() => { 
         const adjustedData = dataFromCsv['dataFromCsv'];
         setDataPoints(adjustedData);
@@ -22,7 +17,11 @@ function Graph(dataFromCsv) {
 
 
 
-
+    /*
+    ------------------------
+            Edit Mode
+    ------------------------
+    */
 
     function getClickedId(event) { 
         const canvas = canvasRef.current;
@@ -31,7 +30,6 @@ function Graph(dataFromCsv) {
         const x_step = canvas.width / (dataPoints.length - 1);
         const index = Math.floor(x / x_step);
         const pointId = dataPoints[index][1];
-        // console.log(pointId);
 
         return pointId;
     }
@@ -47,6 +45,13 @@ function Graph(dataFromCsv) {
         });
         setDataPoints(updatedPoints);
     }
+
+    /*
+    ------------------------
+           Segment Mode
+    ------------------------
+    */
+
 
     function addVeriticalLine(event) { 
         
@@ -64,9 +69,6 @@ function Graph(dataFromCsv) {
         });
 
     }
-
-
-
 
     function updatePointIds(verticalLines) { 
         const canvas = canvasRef.current;
@@ -96,6 +98,12 @@ function Graph(dataFromCsv) {
 
     }
 
+    /*
+    ------------------------
+            Rendering
+    ------------------------
+    */
+
 
     function drawGraph() {
         const canvas = canvasRef.current;
@@ -104,14 +112,14 @@ function Graph(dataFromCsv) {
         const x_step = canvas.width / (dataPoints.length - 1);
 
         ctx.clearRect(0, 0, canvas.width, canvas.height);
-        ctx.lineWidth = 2;
+        ctx.lineWidth = 3;
 
         // draw datapoints graph
         dataPoints.forEach((point, index) => { 
 
 
             const x = index * x_step;
-            const price = height - point[0];
+            const price = canvas.height - point[0];
             const id = point[1];
             const color = point[2];
 
@@ -121,7 +129,7 @@ function Graph(dataFromCsv) {
                 const prevX = (index - 1) * x_step;
 
                 const prevPoint = dataPoints[index - 1];
-                const prevPrice = height - prevPoint[0];
+                const prevPrice = canvas.height - prevPoint[0];
                 const prevId = prevPoint[1]
 
 
@@ -135,7 +143,7 @@ function Graph(dataFromCsv) {
                     ctx.strokeStyle = "green";
                 }
                 else if (color % 4 == 3) {
-                    ctx.strokeStyle = "yellow";
+                    ctx.strokeStyle = "orange";
                 }
                 
                 ctx.beginPath();
@@ -160,7 +168,6 @@ function Graph(dataFromCsv) {
     }
 
 
-
     // draw graph
     useEffect(() => { 
         // console.log("detected a change in dataPoints");
@@ -168,14 +175,19 @@ function Graph(dataFromCsv) {
     }, [verticalLines, dataPoints]);
 
 
+    /*
+    ------------------------
+                UX
+    ------------------------
+    */
+
+
     function handleCanvasClick(event) { 
         if (mode == "Split") { 
             addVeriticalLine(event);
         }
         else if (mode == "Edit") { 
-            // function to detect id
             const id = getClickedId(event);
-            // function to set ids with correct color
             updateColorById(id);
         }
     }
@@ -200,6 +212,12 @@ function Graph(dataFromCsv) {
         // })
         console.log(dataFromCsv['dataFromCsv']);
     }
+
+    document.addEventListener("keydown", (event) => { 
+        if (event.key == "Enter") { 
+            toggleMode();
+        }
+    })
 
 
     return (
