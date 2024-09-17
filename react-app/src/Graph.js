@@ -1,16 +1,25 @@
 import { useState, useEffect, useRef } from 'react'
 
-function Graph() { 
+function Graph(dataFromCsv) { 
+
+    const [mode, setMode] = useState("Split");
 
     const canvasRef = useRef(null);
     const height = 600;
 
     const [verticalLines, setVerticalLines] = useState([]);
 
-    const initialData = Array.from({length: 300}, () => [(Math.random() * 0.8 + 0.1) * height, 0, 0])
+
+    const initialData = dataFromCsv.length > 0 
+        ? dataFromCsv['dataFromCsv'] : 
+        Array.from({length: 300}, () => [0, 0, 0])
     const [dataPoints, setDataPoints] = useState(initialData);
 
-    const [mode, setMode] = useState("Split");
+    useEffect(() => { 
+        setDataPoints(dataFromCsv['dataFromCsv']);
+    }, [dataFromCsv]);
+
+
 
 
 
@@ -187,11 +196,20 @@ function Graph() {
     }
 
 
+    function test() {
+        // dataFromCsv.forEach((point, index) => { 
+        //     console.log(point, index);
+        // })
+        console.log(dataFromCsv['dataFromCsv']);
+    }
+
+
     return (
         <>
             <canvas id="graph" ref={canvasRef} onClick={handleCanvasClick} width="1600" height="600"></canvas>
             <button onClick={handleClick}>Log</button>
             <button onClick={toggleMode}>Toggle Mode</button>
+            <button onClick={test}>Test</button>
         </>
     )
 }

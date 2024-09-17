@@ -1,4 +1,5 @@
 import { useEffect, useState } from 'react';
+import Graph from './Graph';
 
 function Data() { 
 
@@ -9,7 +10,8 @@ function Data() {
             .then((response) => response.text())
             .then((text) => { 
                 const rows = text.split("\n").map((row) => row.split(','));
-                setCsvData(rows.slice(1));
+                const formattedData = rows.slice(1).map(row => [parseFloat(row[1]), 0, 0]);
+                setCsvData(formattedData);
             })
             .catch((error) => console.log("Loading Error: ", error));
     }, []);
@@ -21,6 +23,7 @@ function Data() {
     return  (
         <>
             <p>Bungus</p>
+            <Graph dataFromCsv={csvData}/>
             <ul>
                 {csvData.map((row, index) => (
                     <li key={index}>{row.join(", ")}</li>

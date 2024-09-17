@@ -7,7 +7,6 @@ function App() {
     <div className="App">
       <header className="App-header">
         <h1>Add Labels</h1>
-        <Graph />
         <Data />
       </header>
     </div>
