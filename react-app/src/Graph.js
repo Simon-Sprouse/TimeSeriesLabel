@@ -9,6 +9,9 @@ function Graph(dataFromCsv) {
     const initialData = Array.from({length: 300}, () => [0, 0, 0])
     const [dataPoints, setDataPoints] = useState(initialData);
 
+    const [numPoints, setNumPoints] = useState(100);
+    const [scrollOffset, setScrollOffset] = useState(0);
+
     // Load data from prop
     useEffect(() => { 
         const adjustedData = dataFromCsv['dataFromCsv'];
@@ -27,7 +30,7 @@ function Graph(dataFromCsv) {
         const canvas = canvasRef.current;
         const rect = canvas.getBoundingClientRect();
         const x = event.clientX - rect.left;
-        const x_step = canvas.width / (dataPoints.length - 1);
+        const x_step = canvas.width / (numPoints - 1);
         const index = Math.floor(x / x_step);
         const pointId = dataPoints[index][1];
 
@@ -72,7 +75,7 @@ function Graph(dataFromCsv) {
 
     function updatePointIds(verticalLines) { 
         const canvas = canvasRef.current;
-        const x_step = canvas.width / (dataPoints.length - 1);
+        const x_step = canvas.width / (numPoints - 1);
 
         // dataPoints.forEach(point => console.log(point));
 
@@ -109,13 +112,13 @@ function Graph(dataFromCsv) {
         const canvas = canvasRef.current;
         const ctx = canvas.getContext("2d");
 
-        const x_step = canvas.width / (dataPoints.length - 1);
+        const x_step = canvas.width / (numPoints - 1);
 
         ctx.clearRect(0, 0, canvas.width, canvas.height);
         ctx.lineWidth = 3;
 
         // draw datapoints graph
-        dataPoints.forEach((point, index) => { 
+        dataPoints.slice(scrollOffset, scrollOffset + numPoints).forEach((point, index) => { 
 
 
             const x = index * x_step;
@@ -128,9 +131,9 @@ function Graph(dataFromCsv) {
                 
                 const prevX = (index - 1) * x_step;
 
-                const prevPoint = dataPoints[index - 1];
+                const prevPoint = dataPoints[scrollOffset + index - 1];
                 const prevPrice = canvas.height - prevPoint[0];
-                const prevId = prevPoint[1]
+                // const prevId = prevPoint[1]
 
 
                 if (color % 4 == 0) {
@@ -172,7 +175,7 @@ function Graph(dataFromCsv) {
     useEffect(() => { 
         // console.log("detected a change in dataPoints");
         drawGraph();
-    }, [verticalLines, dataPoints]);
+    }, [verticalLines, dataPoints, scrollOffset]);
 
 
     /*
@@ -180,6 +183,21 @@ function Graph(dataFromCsv) {
                 UX
     ------------------------
     */
+
+    useEffect(() => { 
+
+        function handleKeyDown(event) { 
+            if (event.key == "Enter") { 
+                toggleMode();
+            }
+        }
+
+        document.addEventListener("keydown", handleKeyDown);
+        return () => {
+            document.removeEventListener("keydown", handleKeyDown);
+        }
+
+    })
 
 
     function handleCanvasClick(event) { 
@@ -213,11 +231,22 @@ function Graph(dataFromCsv) {
         console.log(dataFromCsv['dataFromCsv']);
     }
 
-    document.addEventListener("keydown", (event) => { 
-        if (event.key == "Enter") { 
-            toggleMode();
-        }
-    })
+
+
+    function handleScroll(direction) { 
+        setScrollOffset((prevOffset) => { 
+            const maxOffset = dataPoints.length - numPoints;
+            if (direction == "left" && prevOffset >= 10) { 
+                return prevOffset - 10;
+            }
+            else if (direction == "right" && prevOffset < maxOffset - 10) { 
+                return prevOffset + 10;
+            }
+            
+            return prevOffset;
+        })
+        
+    }
 
 
     return (
@@ -226,6 +255,9 @@ function Graph(dataFromCsv) {
             <canvas id="graph" ref={canvasRef} onClick={handleCanvasClick} width="1600" height="600"></canvas>
             <button onClick={toggleMode}>Toggle Mode</button>
             {/* <button onClick={test}>Test</button> */}
+            <button onClick={() => handleScroll("left")}>Left</button>
+            <button onClick={() => handleScroll("right")}>Right</button>
+            <p>{scrollOffset}</p>
         </>
     )
 }

@@ -1,0 +1,18 @@
+# Node modules
+node_modules/
+
+# Logs
+logs
+*.log
+
+# Dependency directories
+/node_modules
+/bower_components
+
+# Build directories
+/dist
+/build
+
+# IDE or editor settings
+.vscode/
+*.sublime-workspace
