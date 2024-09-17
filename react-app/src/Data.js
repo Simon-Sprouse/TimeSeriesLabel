@@ -22,7 +22,6 @@ function Data() {
 
     return  (
         <>
-            <p>Bungus</p>
             <Graph dataFromCsv={csvData}/>
             <ul>
                 {csvData.map((row, index) => (

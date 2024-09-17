@@ -22,3 +22,7 @@ canvas {
 li { 
     list-style-type: None;
 }
+
+button {
+    font-size: 30px;
+}

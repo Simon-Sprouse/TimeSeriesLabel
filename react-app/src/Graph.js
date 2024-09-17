@@ -16,7 +16,8 @@ function Graph(dataFromCsv) {
     const [dataPoints, setDataPoints] = useState(initialData);
 
     useEffect(() => { 
-        setDataPoints(dataFromCsv['dataFromCsv']);
+        const adjustedData = dataFromCsv['dataFromCsv'];
+        setDataPoints(adjustedData);
     }, [dataFromCsv]);
 
 
@@ -30,7 +31,7 @@ function Graph(dataFromCsv) {
         const x_step = canvas.width / (dataPoints.length - 1);
         const index = Math.floor(x / x_step);
         const pointId = dataPoints[index][1];
-        console.log(pointId);
+        // console.log(pointId);
 
         return pointId;
     }
@@ -110,7 +111,7 @@ function Graph(dataFromCsv) {
 
 
             const x = index * x_step;
-            const price = point[0];
+            const price = height - point[0];
             const id = point[1];
             const color = point[2];
 
@@ -120,7 +121,7 @@ function Graph(dataFromCsv) {
                 const prevX = (index - 1) * x_step;
 
                 const prevPoint = dataPoints[index - 1];
-                const prevPrice = prevPoint[0];
+                const prevPrice = height - prevPoint[0];
                 const prevId = prevPoint[1]
 
 
@@ -162,7 +163,7 @@ function Graph(dataFromCsv) {
 
     // draw graph
     useEffect(() => { 
-        console.log("detected a change in dataPoints");
+        // console.log("detected a change in dataPoints");
         drawGraph();
     }, [verticalLines, dataPoints]);
 
@@ -179,9 +180,6 @@ function Graph(dataFromCsv) {
         }
     }
 
-    function handleClick() {
-        dataPoints.forEach(point => console.log(point));
-    }
 
     function toggleMode() { 
         if (mode == "Split") { 
@@ -206,10 +204,10 @@ function Graph(dataFromCsv) {
 
     return (
         <>
+            <p>{mode == "Split" ? "Segment Mode" : "Label Mode"}</p>
             <canvas id="graph" ref={canvasRef} onClick={handleCanvasClick} width="1600" height="600"></canvas>
-            <button onClick={handleClick}>Log</button>
             <button onClick={toggleMode}>Toggle Mode</button>
-            <button onClick={test}>Test</button>
+            {/* <button onClick={test}>Test</button> */}
         </>
     )
 }
