@@ -75,6 +75,60 @@ function Graph(dataFromCsv) {
 
     }
 
+    function removeVerticalLine(event) { 
+        const canvas = canvasRef.current;
+        const rect = canvas.getBoundingClientRect();
+        const x = event.clientX - rect.left;
+
+
+        const x_step = canvas.width / (numPoints -  1);
+        const clickIndex = (x / x_step) + scrollOffset;
+        const threshold = numPoints / 50; // TODO: calculate this dynamically
+
+        let closestLineIndex = -1;
+        let minDistance = Infinity;
+
+
+        verticalLines.forEach((line, index) => { 
+            const distance = Math.abs(line - clickIndex);
+            if (distance < minDistance) {
+                minDistance = distance;
+                closestLineIndex = index;
+
+            }
+        });
+
+        if (minDistance < threshold) {
+            setVerticalLines(prevLines => { 
+
+                const newLines = [...prevLines];
+                const removedLine = newLines.splice(closestLineIndex, 1)[0];
+
+                // console.log(removedLine);
+
+
+
+                const leftPoint = dataPoints[Math.floor(removedLine)];
+                const leftId = leftPoint[1];
+                const leftColor = leftPoint[2];
+
+                // console.log(leftColor);
+
+
+                mergePointIds(newLines, leftId, leftColor);
+
+                
+
+                return newLines;
+            })
+        }
+
+
+
+
+
+    }
+
 
     function updatePointIds(verticalLines) { 
 
@@ -89,6 +143,29 @@ function Graph(dataFromCsv) {
 
             return [point[0], id, point[2]];
         });
+
+        setDataPoints(updatedPoints);
+
+    }
+
+    function mergePointIds(verticalLines, leftId, leftColor) {
+
+        let id = 0;
+
+        const updatedPoints = dataPoints.map((point, index) => { 
+
+            // if point is further right than vertical line, create new id group
+            while (index >= verticalLines[id]) { 
+                id++;
+            }
+
+            if (point[1] == leftId + 1) { 
+                return [point[0], id, leftColor];
+            }
+
+            return [point[0], id, point[2]];
+        });
+
 
         setDataPoints(updatedPoints);
 
@@ -209,7 +286,13 @@ function Graph(dataFromCsv) {
             if (tool == "Segment") { 
                 setTool("Color");
             }
-            else { 
+            else if (tool == "Color") { 
+                setTool("Erase");
+            }
+            else if (tool == "Erase") { 
+                setTool("Drag");
+            }
+            else if (tool == "Drag") { 
                 setTool("Segment");
             }
            
@@ -224,12 +307,20 @@ function Graph(dataFromCsv) {
 
 
     function handleCanvasClick(event) { 
+
+        // console.log(getClickedId(event));
+        
+
+
         if (tool == "Segment") { 
             addVeriticalLine(event);
         }
         else if (tool == "Color") { 
             const id = getClickedId(event);
             updateColorById(id);
+        }
+        else if (tool == "Erase") { 
+            removeVerticalLine(event);
         }
     }
 
@@ -256,7 +347,7 @@ function Graph(dataFromCsv) {
             if (direction == "in" && prevNumPoints > 10) { 
                 return prevNumPoints - 10;
             }
-            else if (direction == "out" && prevNumPoints < dataPoints.length) { 
+            else if (direction == "out" && prevNumPoints < dataPoints.length - 10) { 
                 return prevNumPoints + 10;
             }
             return prevNumPoints
@@ -281,7 +372,7 @@ function Graph(dataFromCsv) {
 
 
     function test() {
-        console.log(tool);
+
     }
 
     
@@ -355,21 +446,24 @@ List of things to do:
 - Make the data scale to the window size vertically         DONE
 - Performance improvement for the updatePointIds function   DONE
 - Zoom feature to change numPoints                          DONE
-- Create toggle menu
-- Add remove segment feature
+- Create toggle menu                                        DONE
+- Add remove segment feature                                DONE
 - Add drag scroll feature
 - Zoom with mouse rather than button
+- Option to remove all vertical bars
 - Output the dataset to csv
 - Clean csv inputs if they arrive in bad form
 - File opener io
 - K class selection
 - User inputs labels
 - Show stats on labels as percentage of data
+- Graph all members overlayed
 - Add dates/labels for axes
 - Add color underneath line
 - Segment darkens when hovering over it
 - Css improvements
 - Show text on graph for labels
+
 
 
 */
