@@ -26,3 +26,23 @@ li {
 button {
     font-size: 30px;
 }
+
+.tool-menu { 
+    display: flex;
+
+}
+
+.tab { 
+    padding: 10px 20px;
+    cursor: pointer;
+    border: 1px solid black;
+}
+
+.tab:hover { 
+    background-color: #dddddd
+}
+
+.tab.active { 
+    background-color: #777777; 
+    color: white;
+}

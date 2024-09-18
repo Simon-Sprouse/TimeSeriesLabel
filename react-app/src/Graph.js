@@ -4,7 +4,7 @@ function Graph(dataFromCsv) {
 
     // Variables
     const canvasRef = useRef(null);
-    const [mode, setMode] = useState("Split");
+    const [tool, setTool] = useState("Segment"); // segment, erase, color, drag
     const [verticalLines, setVerticalLines] = useState([]);
     const initialData = Array.from({length: 300}, () => [0, 0, 0])
     const [dataPoints, setDataPoints] = useState(initialData);
@@ -22,7 +22,7 @@ function Graph(dataFromCsv) {
 
     /*
     ------------------------
-            Edit Mode
+            Color Mode
     ------------------------
     */
 
@@ -206,9 +206,13 @@ function Graph(dataFromCsv) {
     useEffect(() => { 
 
         function handleKeyDown(event) { 
-            if (event.key == "Enter") { 
-                toggleMode();
+            if (tool == "Segment") { 
+                setTool("Color");
             }
+            else { 
+                setTool("Segment");
+            }
+           
         }
 
         document.addEventListener("keydown", handleKeyDown);
@@ -220,26 +224,13 @@ function Graph(dataFromCsv) {
 
 
     function handleCanvasClick(event) { 
-        if (mode == "Split") { 
+        if (tool == "Segment") { 
             addVeriticalLine(event);
         }
-        else if (mode == "Edit") { 
+        else if (tool == "Color") { 
             const id = getClickedId(event);
             updateColorById(id);
         }
-    }
-
-
-    function toggleMode() { 
-        if (mode == "Split") { 
-            setMode("Edit");
-        }
-        else { 
-            setMode("Split");
-        }
-
-        
-
     }
 
 
@@ -273,18 +264,44 @@ function Graph(dataFromCsv) {
     }
 
 
-    function test() {
-        console.log(getMinMaxPrices());
+    function setTab(tab) { 
+        if (tab == "Segment") { 
+            setTool("Segment");
+        }
+        else if (tab == "Color") { 
+            setTool("Color");
+        }
+        else if (tab == "Erase") { 
+            setTool("Erase");
+        }
+        else if (tab == "Drag") { 
+            setTool("Drag");
+        }
     }
 
 
+    function test() {
+        console.log(tool);
+    }
+
+    
 
 
     return (
         <>
-            <p>{mode == "Split" ? "Segment Mode" : "Label Mode"}</p>
+            <div className="tool-menu">
+
+                <div className={`tab ${tool == "Segment" ? "active" : ""}`} 
+                    onClick={() => setTab("Segment")}>Segment</div>
+                <div className={`tab ${tool == "Color" ? "active" : ""}`}  
+                    onClick={() => setTab("Color")}>Color</div>
+                <div className={`tab ${tool == "Erase" ? "active" : ""}`} 
+                    onClick={() => setTab("Erase")}>Erase</div>
+                <div className={`tab ${tool == "Drag" ? "active" : ""}`} 
+                    onClick={() => setTab("Drag")}>Drag</div>
+
+            </div>
             <canvas id="graph" ref={canvasRef} onClick={handleCanvasClick} width="1600" height="600"></canvas>
-            <button onClick={toggleMode}>Toggle Mode</button>
             <button onClick={test}>Test</button>
             <p>Scroll</p>
             <button onClick={() => handleScroll("left")}>Left</button>
@@ -293,6 +310,7 @@ function Graph(dataFromCsv) {
             <p>Zoom</p>
             <button onClick={() => handleZoom("in")}>In</button>
             <button onClick={() => handleZoom("out")}>Out</button>
+            
         </>
     )
 }
