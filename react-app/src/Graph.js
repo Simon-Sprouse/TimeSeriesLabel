@@ -12,6 +12,10 @@ function Graph(dataFromCsv) {
     const [numPoints, setNumPoints] = useState(200);
     const [scrollOffset, setScrollOffset] = useState(0);
 
+    const [isDragging, setIsDragging] = useState(false);
+    const [dragStartX, setDragStartX] = useState(0);
+    const [dragStartOffset, setDragStartOffset] = useState(0);
+
     // Load data from prop
     useEffect(() => { 
         const adjustedData = dataFromCsv['dataFromCsv'];
@@ -273,6 +277,75 @@ function Graph(dataFromCsv) {
         drawGraph();
     }, [verticalLines, dataPoints, scrollOffset, numPoints]);
 
+    /*
+    ------------------------
+            Drag Scroll
+    ------------------------
+    */
+
+    function handleMouseDown(event) { 
+
+
+        
+
+        if (tool == "Drag") { 
+
+            setIsDragging(true);
+            setDragStartX(event.clientX);
+            setDragStartOffset(scrollOffset);
+        }
+    }
+
+    function handleMouseUp() { 
+        if (isDragging) { 
+            setIsDragging(false);
+        }
+    }
+
+    function handleMouseMove(event) { 
+
+
+        if (isDragging) { 
+            const canvas = canvasRef.current;
+            const dragDistance = event.clientX - dragStartX;
+            const x_step = canvas.width / (numPoints - 1);
+
+            const newOffset = dragStartOffset - Math.floor(dragDistance / x_step);
+            const maxOffset = dataPoints.length - numPoints;
+
+
+                
+
+            const clampedOffset = Math.max(0, Math.min(newOffset, maxOffset));
+            setScrollOffset(clampedOffset);
+        }
+    }
+
+    function handleMouseLeave() { 
+        handleMouseUp();
+    }
+
+
+
+
+    useEffect(() => {
+
+
+
+        const canvas = canvasRef.current;
+        canvas.addEventListener("mousedown", handleMouseDown);
+        canvas.addEventListener("mouseup", handleMouseUp);
+        canvas.addEventListener("mousemove", handleMouseMove);
+        canvas.addEventListener("mouseleave", handleMouseLeave);
+
+        return () => { 
+            canvas.removeEventListener("mousedown", handleMouseDown);
+            canvas.removeEventListener("mouseup", handleMouseUp);
+            canvas.removeEventListener("mousemove", handleMouseMove);
+            canvas.removeEventListener("mouseleave", handleMouseLeave);
+        }
+    }, [isDragging, dragStartX, dragStartOffset, scrollOffset, numPoints, tool]);
+
 
     /*
     ------------------------
@@ -308,7 +381,7 @@ function Graph(dataFromCsv) {
 
     function handleCanvasClick(event) { 
 
-        // console.log(getClickedId(event));
+
         
 
 
@@ -356,6 +429,9 @@ function Graph(dataFromCsv) {
 
 
     function setTab(tab) { 
+
+
+
         if (tab == "Segment") { 
             setTool("Segment");
         }
@@ -448,7 +524,7 @@ List of things to do:
 - Zoom feature to change numPoints                          DONE
 - Create toggle menu                                        DONE
 - Add remove segment feature                                DONE
-- Add drag scroll feature
+- Add drag scroll feature                                   DONE
 - Zoom with mouse rather than button
 - Option to remove all vertical bars
 - Output the dataset to csv
@@ -462,7 +538,9 @@ List of things to do:
 - Add color underneath line
 - Segment darkens when hovering over it
 - Css improvements
+- Change cursor style based on tool mode
 - Show text on graph for labels
+- Add tracking (annotate) tool
 
 
 
