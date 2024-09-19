@@ -418,8 +418,33 @@ function Graph(dataFromCsv) {
 
     function handleWheel(event) { 
         event.preventDefault();
+        
+
+
+
         const zoomDirection = event.deltaY > 0 ? "out" : "in";
-        handleZoom(zoomDirection);
+        const zoomFactor = 2; // to be applied on both ends
+
+        if (zoomDirection == "out") { 
+            setNumPoints(prevNumPoints => { 
+                const newNumPoints = Math.min(prevNumPoints + zoomFactor * 2, dataPoints.length);
+                setScrollOffset(prevOffset => { 
+                    return Math.max(prevOffset - zoomFactor, 0);
+                })
+                return newNumPoints;
+            });
+        }
+        else if (zoomDirection == "in") {
+            setNumPoints(prevNumPoints => { 
+                const newNumPoints = Math.max(prevNumPoints - zoomFactor * 2, 2);
+                setScrollOffset(prevOffset => { 
+                    return Math.min(prevOffset + zoomFactor, dataPoints.length);
+                })
+                return newNumPoints;
+            });
+        }
+
+
     }
 
     function handleZoom(direction) {
@@ -444,7 +469,7 @@ function Graph(dataFromCsv) {
         return () => { 
             canvas.removeEventListener("wheel", handleWheel);
         }
-    }, [numPoints, dataPoints]);
+    }, [numPoints, scrollOffset, dataPoints]);
 
 
     function setTab(tab) { 
@@ -544,7 +569,7 @@ List of things to do:
 - Create toggle menu                                        DONE
 - Add remove segment feature                                DONE
 - Add drag scroll feature                                   DONE
-- Zoom with mouse rather than button
+- Zoom with mouse rather than button                        DONE
 - Option to remove all vertical bars
 - Output the dataset to csv
 - Clean csv inputs if they arrive in bad form
@@ -562,6 +587,7 @@ List of things to do:
 - Add tracking (annotate) tool
 - Drag for erase feature
 - Reset option
+- Better zoom logic
 
 
 
