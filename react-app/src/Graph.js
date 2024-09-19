@@ -415,17 +415,36 @@ function Graph(dataFromCsv) {
         
     }
 
+
+    function handleWheel(event) { 
+        event.preventDefault();
+        const zoomDirection = event.deltaY > 0 ? "out" : "in";
+        handleZoom(zoomDirection);
+    }
+
     function handleZoom(direction) {
+
+
+        const zoomFactor = 3;
         setNumPoints((prevNumPoints) => { 
-            if (direction == "in" && prevNumPoints > 10) { 
-                return prevNumPoints - 10;
+            if (direction == "in" && prevNumPoints > zoomFactor) { 
+                return prevNumPoints - zoomFactor;
             }
-            else if (direction == "out" && prevNumPoints < dataPoints.length - 10) { 
-                return prevNumPoints + 10;
+            else if (direction == "out" && prevNumPoints < dataPoints.length - zoomFactor) { 
+                return prevNumPoints + zoomFactor;
             }
             return prevNumPoints
         })
     }
+
+    useEffect(() => { 
+        const canvas = canvasRef.current;
+        canvas.addEventListener("wheel", handleWheel);
+
+        return () => { 
+            canvas.removeEventListener("wheel", handleWheel);
+        }
+    }, [numPoints, dataPoints]);
 
 
     function setTab(tab) { 
@@ -469,14 +488,14 @@ function Graph(dataFromCsv) {
 
             </div>
             <canvas id="graph" ref={canvasRef} onClick={handleCanvasClick} width="1600" height="600"></canvas>
-            <button onClick={test}>Test</button>
+            {/* <button onClick={test}>Test</button>
             <p>Scroll</p>
             <button onClick={() => handleScroll("left")}>Left</button>
             <button onClick={() => handleScroll("right")}>Right</button>
             <p>{scrollOffset}</p>
             <p>Zoom</p>
             <button onClick={() => handleZoom("in")}>In</button>
-            <button onClick={() => handleZoom("out")}>Out</button>
+            <button onClick={() => handleZoom("out")}>Out</button> */}
             
         </>
     )
@@ -541,6 +560,8 @@ List of things to do:
 - Change cursor style based on tool mode
 - Show text on graph for labels
 - Add tracking (annotate) tool
+- Drag for erase feature
+- Reset option
 
 
 

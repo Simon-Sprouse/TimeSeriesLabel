@@ -23,11 +23,11 @@ function Data() {
     return  (
         <>
             <Graph dataFromCsv={csvData}/>
-            <ul>
+            {/* <ul>
                 {csvData.map((row, index) => (
                     <li key={index}>{row.join(", ")}</li>
                 ))}
-            </ul>
+            </ul> */}
         </>
     )
 }
