@@ -16,6 +16,8 @@ function Graph(dataFromCsv) {
     const [dragStartX, setDragStartX] = useState(0);
     const [dragStartOffset, setDragStartOffset] = useState(0);
 
+    const [showVerticalLines, setShowVerticalLines] = useState(true);
+
     // Load data from prop
     useEffect(() => { 
         const adjustedData = dataFromCsv['dataFromCsv'];
@@ -257,17 +259,20 @@ function Graph(dataFromCsv) {
 
 
         // draw vertical lines
-        verticalLines.forEach(lineIndex => {
+        if (showVerticalLines == true) {
+            verticalLines.forEach(lineIndex => {
 
-            const lineX = (lineIndex - scrollOffset) * x_step;
-            
-            ctx.beginPath();
-            ctx.moveTo(lineX, 0);
-            ctx.lineTo(lineX, canvas.height);
-            ctx.strokeStyle = "black";
-            ctx.linewidth = 2;
-            ctx.stroke();
-        })
+                const lineX = (lineIndex - scrollOffset) * x_step;
+                
+                ctx.beginPath();
+                ctx.moveTo(lineX, 0);
+                ctx.lineTo(lineX, canvas.height);
+                ctx.strokeStyle = "black";
+                ctx.linewidth = 2;
+                ctx.stroke();
+            });
+        }
+        
     }
 
 
@@ -275,7 +280,7 @@ function Graph(dataFromCsv) {
     useEffect(() => { 
         // console.log("detected a change in dataPoints");
         drawGraph();
-    }, [verticalLines, dataPoints, scrollOffset, numPoints]);
+    }, [verticalLines, dataPoints, scrollOffset, numPoints, showVerticalLines]);
 
     /*
     ------------------------
@@ -284,9 +289,6 @@ function Graph(dataFromCsv) {
     */
 
     function handleMouseDown(event) { 
-
-
-        
 
         if (tool == "Drag") { 
 
@@ -312,9 +314,7 @@ function Graph(dataFromCsv) {
 
             const newOffset = dragStartOffset - Math.floor(dragDistance / x_step);
             const maxOffset = dataPoints.length - numPoints;
-
-
-                
+   
 
             const clampedOffset = Math.max(0, Math.min(newOffset, maxOffset));
             setScrollOffset(clampedOffset);
@@ -330,8 +330,6 @@ function Graph(dataFromCsv) {
 
     useEffect(() => {
 
-
-
         const canvas = canvasRef.current;
         canvas.addEventListener("mousedown", handleMouseDown);
         canvas.addEventListener("mouseup", handleMouseUp);
@@ -345,6 +343,54 @@ function Graph(dataFromCsv) {
             canvas.removeEventListener("mouseleave", handleMouseLeave);
         }
     }, [isDragging, dragStartX, dragStartOffset, scrollOffset, numPoints, tool]);
+
+
+
+    /*
+    ------------------------
+           Wheel Zoom
+    ------------------------
+    */
+
+
+    function handleWheel(event) { 
+
+        event.preventDefault();
+        
+        const zoomDirection = event.deltaY > 0 ? "out" : "in";
+        const zoomFactor = 2; // to be applied on both ends
+
+        if (zoomDirection == "out") { 
+            setNumPoints(prevNumPoints => { 
+                const newNumPoints = Math.min(prevNumPoints + zoomFactor * 2, dataPoints.length);
+                setScrollOffset(prevOffset => { 
+                    return Math.max(prevOffset - zoomFactor, 0);
+                })
+                return newNumPoints;
+            });
+        }
+        else if (zoomDirection == "in") {
+            setNumPoints(prevNumPoints => { 
+                const newNumPoints = Math.max(prevNumPoints - zoomFactor * 2, 2);
+                setScrollOffset(prevOffset => { 
+                    return Math.min(prevOffset + zoomFactor, dataPoints.length);
+                })
+                return newNumPoints;
+            });
+        }
+
+    }
+
+
+
+    useEffect(() => { 
+        const canvas = canvasRef.current;
+        canvas.addEventListener("wheel", handleWheel);
+
+        return () => { 
+            canvas.removeEventListener("wheel", handleWheel);
+        }
+    }, [numPoints, scrollOffset, dataPoints]);
 
 
     /*
@@ -382,9 +428,6 @@ function Graph(dataFromCsv) {
     function handleCanvasClick(event) { 
 
 
-        
-
-
         if (tool == "Segment") { 
             addVeriticalLine(event);
         }
@@ -397,102 +440,35 @@ function Graph(dataFromCsv) {
         }
     }
 
+    function exportData() { 
+
+        const colorToKClass = dataPoints.map(row => [row[0], [row[1], row[2] % 4]]);
+
+        const headers = ["Price", "Id", "Class"];
+        let csvData = headers.join(", ") + "\n";
+
+        colorToKClass.forEach(point => { 
+            csvData += point.join(", ") + "\n";
+        });
 
 
+        const blob = new Blob([csvData], {type: "text/csv"});
+        const url = window.URL.createObjectURL(blob);
 
-    function handleScroll(direction) { 
-        setScrollOffset((prevOffset) => { 
-            const maxOffset = dataPoints.length - numPoints;
-            if (direction == "left" && prevOffset >= 10) { 
-                return prevOffset - 10;
-            }
-            else if (direction == "right" && prevOffset < maxOffset - 10) { 
-                return prevOffset + 10;
-            }
-            
-            return prevOffset;
-        })
-        
+        const link = document.createElement("a");
+        link.href = url;
+        link.download = "dataPoints.csv";
+
+        document.body.appendChild(link);
+        link.click();
+        document.body.removeChild(link);
     }
 
 
-    function handleWheel(event) { 
-        event.preventDefault();
-        
-
-
-
-        const zoomDirection = event.deltaY > 0 ? "out" : "in";
-        const zoomFactor = 2; // to be applied on both ends
-
-        if (zoomDirection == "out") { 
-            setNumPoints(prevNumPoints => { 
-                const newNumPoints = Math.min(prevNumPoints + zoomFactor * 2, dataPoints.length);
-                setScrollOffset(prevOffset => { 
-                    return Math.max(prevOffset - zoomFactor, 0);
-                })
-                return newNumPoints;
-            });
-        }
-        else if (zoomDirection == "in") {
-            setNumPoints(prevNumPoints => { 
-                const newNumPoints = Math.max(prevNumPoints - zoomFactor * 2, 2);
-                setScrollOffset(prevOffset => { 
-                    return Math.min(prevOffset + zoomFactor, dataPoints.length);
-                })
-                return newNumPoints;
-            });
-        }
-
-
-    }
-
-    function handleZoom(direction) {
-
-
-        const zoomFactor = 3;
-        setNumPoints((prevNumPoints) => { 
-            if (direction == "in" && prevNumPoints > zoomFactor) { 
-                return prevNumPoints - zoomFactor;
-            }
-            else if (direction == "out" && prevNumPoints < dataPoints.length - zoomFactor) { 
-                return prevNumPoints + zoomFactor;
-            }
-            return prevNumPoints
-        })
-    }
-
-    useEffect(() => { 
-        const canvas = canvasRef.current;
-        canvas.addEventListener("wheel", handleWheel);
-
-        return () => { 
-            canvas.removeEventListener("wheel", handleWheel);
-        }
-    }, [numPoints, scrollOffset, dataPoints]);
-
-
-    function setTab(tab) { 
-
-
-
-        if (tab == "Segment") { 
-            setTool("Segment");
-        }
-        else if (tab == "Color") { 
-            setTool("Color");
-        }
-        else if (tab == "Erase") { 
-            setTool("Erase");
-        }
-        else if (tab == "Drag") { 
-            setTool("Drag");
-        }
-    }
 
 
     function test() {
-
+        console.log(dataPoints);
     }
 
     
@@ -503,25 +479,20 @@ function Graph(dataFromCsv) {
             <div className="tool-menu">
 
                 <div className={`tab ${tool == "Segment" ? "active" : ""}`} 
-                    onClick={() => setTab("Segment")}>Segment</div>
+                    onClick={() => setTool("Segment")}>Segment</div>
                 <div className={`tab ${tool == "Color" ? "active" : ""}`}  
-                    onClick={() => setTab("Color")}>Color</div>
+                    onClick={() => setTool("Color")}>Color</div>
                 <div className={`tab ${tool == "Erase" ? "active" : ""}`} 
-                    onClick={() => setTab("Erase")}>Erase</div>
+                    onClick={() => setTool("Erase")}>Erase</div>
                 <div className={`tab ${tool == "Drag" ? "active" : ""}`} 
-                    onClick={() => setTab("Drag")}>Drag</div>
+                    onClick={() => setTool("Drag")}>Drag</div>
 
             </div>
             <canvas id="graph" ref={canvasRef} onClick={handleCanvasClick} width="1600" height="600"></canvas>
-            {/* <button onClick={test}>Test</button>
-            <p>Scroll</p>
-            <button onClick={() => handleScroll("left")}>Left</button>
-            <button onClick={() => handleScroll("right")}>Right</button>
-            <p>{scrollOffset}</p>
-            <p>Zoom</p>
-            <button onClick={() => handleZoom("in")}>In</button>
-            <button onClick={() => handleZoom("out")}>Out</button> */}
-            
+            <button onClick={test}>Test</button>
+            <button onClick={() => {setShowVerticalLines(!showVerticalLines);}}>{showVerticalLines == true ? "Hide" : "Show"} Vertical Lines</button>
+            <button onClick={exportData}>Export Data</button>
+        
         </>
     )
 }
@@ -570,8 +541,8 @@ List of things to do:
 - Add remove segment feature                                DONE
 - Add drag scroll feature                                   DONE
 - Zoom with mouse rather than button                        DONE
-- Option to remove all vertical bars
-- Output the dataset to csv
+- Option to remove all vertical bars                        DONE
+- Output the dataset to csv                                 DONE
 - Clean csv inputs if they arrive in bad form
 - File opener io
 - K class selection
